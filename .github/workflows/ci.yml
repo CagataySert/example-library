@@ -43,6 +43,15 @@ jobs:
       - name: Wait for the app to start
         run: sleep 10  # Wait for 10 seconds to allow the app to start
 
+      - name: View logs from the Docker container
+        run: |
+          container_id=$(docker ps -q)  # Get the container ID
+          echo "Container ID: $container_id"
+          docker logs $container_id
+
+      - name: View Docker Compose logs
+        run: docker-compose logs  # Show logs from Docker Compose services
+
       - name: Check if the app is running
         run: |
           curl --fail http://localhost:8080 || exit 1
