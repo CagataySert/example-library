@@ -1,8 +1,9 @@
 .PHONY: build up down logs clean run
 
 export DB_USER
-export DB_PASS
-export API_KEY
+export DB_PASSWORD
+export DB_NAME
+export DB_PORT
 
 build:
 	docker-compose build
@@ -21,4 +22,6 @@ clean:
 	docker system prune -f
 	docker volume prune -f
 
-run: DB_USER=$(DB_USER) DB_PASS=$(DB_PASS) API_KEY=$(API_KEY) make build up
+run:
+	$(MAKE) build
+	$(MAKE) up

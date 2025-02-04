@@ -11,6 +11,6 @@ func Migrate() {
 	if err != nil {
 		fmt.Println("❌ Migration işlemi başarısız oldu:", err)
 	} else {
-		fmt.Println("✅ Migration başarıyla tamamlandı!")
+		fmt.Println("✅ GORM Migration başarıyla tamamlandı!")
 	}
 }
