@@ -1,0 +1,39 @@
+name: Go CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PORT: ${{secrets.DB_PORT}}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.23.0'
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+
+      - name: Build and Run using Makefile
+        run: |
+          make run DB_USER=${{ secrets.DB_USER }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }}
+
+      - name: Check if the app is running
+        run: |
+          curl --fail http://localhost:8080 || exit 1

@@ -8,15 +8,18 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: ${DATABASE_URL}  
+      DB_USER: ${DB_USER}  
+      DB_PASSWORD: ${DB_PASSWORD}  
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
 
   db:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}  
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USER}  
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -26,7 +29,9 @@ services:
     image: migrate/migrate
     volumes:
       - ./migrations:/migrations
-    command: [ "-path", "/migrations", "-database", "${DATABASE_URL}", "up" ]
+    environment:
+      DB_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}?sslmode=disable
+    command: [ "-path", "/migrations", "-database", "$${DB_URL}", "up" ]
     depends_on:
       - db
 
