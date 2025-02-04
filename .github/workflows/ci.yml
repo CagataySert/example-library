@@ -58,6 +58,11 @@ jobs:
             docker logs $id  # Show logs for each container
           done
 
+      - name: View application logs
+        run: |
+          APP_CONTAINER_ID=$(docker ps -qf "name=app")
+          docker logs $APP_CONTAINER_ID
+
       - name: Check if the app is running
         run: |
           for i in {1..10}; do
