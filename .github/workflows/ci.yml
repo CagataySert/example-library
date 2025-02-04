@@ -60,7 +60,17 @@ jobs:
 
       - name: Check if the app is running
         run: |
-          curl --fail http://localhost:8080 || exit 1
+          for i in {1..10}; do
+            if curl --fail http://localhost:8080; then
+              echo "App is running!"
+              exit 0
+            else
+              echo "App is not ready yet. Retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          echo "App failed to start within the expected time."
+          exit 1
 
       - name: Docker Compose down
         run: |
