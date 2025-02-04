@@ -29,14 +29,5 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
   
-  migrate:
-    image: migrate/migrate
-    volumes:
-      - ./migrations:/migrations
-    command: [ "-path", "/migrations", "-database", "postgres://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}?sslmode=disable", "up" ]
-    depends_on:
-      db:
-        condition: service_healthy
-
 volumes:
   db_data:
