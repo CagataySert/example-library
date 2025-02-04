@@ -40,8 +40,12 @@ jobs:
         run: |
           make run DB_USER=${{ secrets.DB_USER }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }}
 
-      - name: Wait for the app to start
-        run: sleep 10  # Wait for 10 seconds to allow the app to start
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME}; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
 
       - name: View logs from all Docker containers
         run: |
@@ -52,9 +56,10 @@ jobs:
             docker logs $id  # Show logs for each container
           done
 
-      - name: View Docker Compose logs
-        run: docker-compose logs  # Show logs from Docker Compose services
-
       - name: Check if the app is running
         run: |
           curl --fail http://localhost:8080 || exit 1
+
+      - name: Docker Compose down
+        run: |
+          make run clean
