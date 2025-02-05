@@ -39,43 +39,10 @@ jobs:
       - name: Build and Run using Makefile
         run: |
           make run DB_USER=${{ secrets.DB_USER }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }}
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          DB_CONTAINER_ID=$(docker ps -qf "name=db")  # Get the container ID of the PostgreSQL service
-          until docker exec $DB_CONTAINER_ID pg_isready -U ${DB_USER} -d ${DB_NAME}; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
-
-      - name: View logs from all Docker containers
-        run: |
-          container_ids=$(docker ps -q)  # Get all container IDs
-          echo "Container IDs: $container_ids"
-          for id in $container_ids; do
-            echo "Logs for container $id:"
-            docker logs $id  # Show logs for each container
-          done
-
-      - name: View application logs
-        run: |
-          APP_CONTAINER_ID=$(docker ps -qf "name=app")
-          docker logs $APP_CONTAINER_ID
-
+     
       - name: Check if the app is running
         run: |
-          for i in {1..10}; do
-            if curl --fail http://localhost:8080; then
-              echo "App is running!"
-              exit 0
-            else
-              echo "App is not ready yet. Retrying in 5 seconds..."
-              sleep 5
-            fi
-          done
-          echo "App failed to start within the expected time."
-          exit 1
+          curl --fail http://localhost:8080 || exit 1
 
       - name: Docker Compose down
         run: |
