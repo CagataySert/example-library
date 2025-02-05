@@ -11,50 +11,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-        ports:
-          - 5432:5432
-        options: --health-cmd="pg_isready -U user" --health-timeout=5s --health-start-period=10s --health-retries=5
     
-    env:
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_PORT: ${{secrets.DB_PORT}}
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: '1.23.0'
+          cache: 'go-modules' # Go mod cache'ini etkinleştir
       
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
-
       - name: Install dependencies
         run: |
           go mod tidy
 
-      - name: Build and Run using Makefile
-        run: |
-          make run DB_USER=${{ secrets.DB_USER }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }}
+      - name: Build
+        run: go build -v -o library-system ./...
      
-      - name: Check if the app is running
-        run: |
-          curl --fail http://localhost:8080 || exit 1
-
-      - name: Docker Compose down
-        run: |
-          make run clean
+      - name: Test
+        run: go test -v ./...
