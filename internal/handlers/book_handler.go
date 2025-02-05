@@ -20,7 +20,11 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(books)
+
+	if err := json.NewEncoder(w).Encode(books); err != nil {
+		http.Error(w, "JSON encode hatası", http.StatusInternalServerError)
+		return
+	}
 }
 
 // Yeni Kitap Ekle
@@ -37,7 +41,11 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(book)
+
+	if err := json.NewEncoder(w).Encode(book); err != nil {
+		http.Error(w, "JSON encode hatası", http.StatusInternalServerError)
+		return
+	}
 }
 
 // Kitap Güncelle
@@ -62,7 +70,11 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 	database.DB.Save(&book)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(book)
+
+	if err := json.NewEncoder(w).Encode(book); err != nil {
+		http.Error(w, "JSON encode hatası", http.StatusInternalServerError)
+		return
+	}
 }
 
 // Kitap Sil
