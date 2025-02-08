@@ -5,15 +5,15 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/CagataySert/library-system/internal/database"
 	"github.com/CagataySert/library-system/internal/handlers"
+	"github.com/CagataySert/library-system/internal/repository"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	fmt.Println("🚀 Kütüphane Otomasyonu Başlatiliyor...")
-	database.Connect()
-	database.Migrate() // 🛠️ GORM Migration işlemi
+	repository.Connect()
+	repository.Migrate() // 🛠️ GORM Migration işlemi
 
 	r := mux.NewRouter()
 

@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/CagataySert/library-system/internal/database"
 	"github.com/CagataySert/library-system/internal/models"
+	"github.com/CagataySert/library-system/internal/repository"
 	"github.com/gorilla/mux"
 )
 
 // Kitapları Listele
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	var books []models.Book
-	if err := database.DB.Find(&books).Error; err != nil {
+	if err := repository.DB.Find(&books).Error; err != nil {
 		http.Error(w, "Veritabani hatasi", http.StatusInternalServerError)
 		return
 	}
@@ -35,7 +35,7 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := database.DB.Create(&book).Error; err != nil {
+	if err := repository.DB.Create(&book).Error; err != nil {
 		http.Error(w, "Kitap eklenirken hata oluştu", http.StatusInternalServerError)
 		return
 	}
@@ -58,7 +58,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var book models.Book
-	if err := database.DB.First(&book, id).Error; err != nil {
+	if err := repository.DB.First(&book, id).Error; err != nil {
 		http.Error(w, "Kitap bulunamadı", http.StatusNotFound)
 		return
 	}
@@ -68,7 +68,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.DB.Save(&book)
+	repository.DB.Save(&book)
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
@@ -86,7 +86,7 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := database.DB.Delete(&models.Book{}, id).Error; err != nil {
+	if err := repository.DB.Delete(&models.Book{}, id).Error; err != nil {
 		http.Error(w, "Kitap silinirken hata oluştu", http.StatusInternalServerError)
 		return
 	}

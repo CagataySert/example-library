@@ -1,4 +1,4 @@
-package database
+package repository
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/CagataySert/library-system/internal/models"
 )
 
 var DB *gorm.DB
@@ -66,4 +68,13 @@ func Connect() {
 
 	fmt.Println("✅ Veritabanina başariyla bağlanildi!")
 	DB = db
+}
+
+func Migrate() {
+	err := DB.AutoMigrate(&models.Book{})
+	if err != nil {
+		fmt.Println("❌ Migration işlemi başarısız oldu:", err)
+	} else {
+		fmt.Println("✅ GORM Migration başarıyla tamamlandı!")
+	}
 }
