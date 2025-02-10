@@ -1,9 +1,10 @@
-package repository
+package db
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -11,9 +12,6 @@ import (
 	"github.com/CagataySert/library-system/internal/models"
 )
 
-var DB *gorm.DB
-
-// dbConfig holds the configuration for the database connection.
 type dbConfig struct {
 	user     string
 	password string
@@ -44,7 +42,7 @@ func loadDBConfig() (dbConfig, error) {
 
 	port := os.Getenv("DB_PORT")
 	if port == "" {
-		return dbConfig{}, fmt.Errorf("PORT environment variable is not set")
+		return dbConfig{}, fmt.Errorf("DB_PORT environment variable is not set")
 	}
 
 	return dbConfig{
@@ -55,26 +53,37 @@ func loadDBConfig() (dbConfig, error) {
 	}, nil
 }
 
-func Connect() {
-	config, err := loadDBConfig()
-	if err != nil {
-		log.Fatalf("Failed to load database configuration: %v", err)
-	}
+var (
+	dbInstance *gorm.DB
+	once       sync.Once
+)
 
-	db, err := gorm.Open(postgres.Open(config.dsn()), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Veritabanina bağlanirken hata oluştu:", err)
-	}
+func Connect() *gorm.DB {
+	once.Do(func() {
+		config, err := loadDBConfig()
+		if err != nil {
+			log.Fatalf("Failed to load database configuration: %v", err)
+		}
 
-	fmt.Println("✅ Veritabanina başariyla bağlanildi!")
-	DB = db
-}
+		db, err := gorm.Open(postgres.Open(config.dsn()), &gorm.Config{})
+		if err != nil {
+			log.Fatal("Veritabanina bağlanirken hata oluştu:", err)
+		}
 
-func Migrate() {
-	err := DB.AutoMigrate(&models.Book{})
-	if err != nil {
-		fmt.Println("❌ Migration işlemi başarısız oldu:", err)
-	} else {
-		fmt.Println("✅ GORM Migration başarıyla tamamlandı!")
-	}
+		log.Println("✅ Veritabanina başariyla bağlanildi!")
+		dbInstance = db
+
+		// Migration Process
+		mErr := db.AutoMigrate(
+			&models.Book{},
+		)
+
+		if mErr != nil {
+			log.Println("❌ Migration failed:", mErr)
+		} else {
+			log.Println("✅ Database migrated successfully!")
+		}
+	})
+
+	return dbInstance
 }

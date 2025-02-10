@@ -1,28 +1,50 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/CagataySert/library-system/internal/handlers"
-	"github.com/CagataySert/library-system/internal/repository"
+	"github.com/CagataySert/library-system/internal/routes"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	fmt.Println("🚀 Kütüphane Otomasyonu Başlatiliyor...")
-	repository.Connect()
-	repository.Migrate() // 🛠️ GORM Migration işlemi
-
 	r := mux.NewRouter()
 
-	// API Rotaları
-	r.HandleFunc("/books", handlers.GetBooks).Methods("GET")
-	r.HandleFunc("/books", handlers.AddBook).Methods("POST")
-	r.HandleFunc("/books/{id}", handlers.UpdateBook).Methods("PUT")
-	r.HandleFunc("/books/{id}", handlers.DeleteBook).Methods("DELETE")
+	routes.SetupRoutes(r)
 
-	fmt.Println("📡 Sunucu 8080 portunda çalişiyor...")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		log.Println("Server is running on port 8080")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe failed: %v", err)
+		}
+	}()
+
+	<-stop
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server shutdown failed: %v", err)
+	}
+
+	log.Println("Server exited gracefully")
 }
